@@ -158,7 +158,7 @@
     </div>
 
     <script>
-        const API_URL = 'https://backend-cisneros.onrender.com';
+        const API_URL = 'https://backend-cisneros.onrender.com/api';
 
         async function generateReport() {
             try {
@@ -166,7 +166,7 @@
                 const endDate = document.getElementById('endDate').value;
                 const reportType = document.getElementById('reportType').value;
 
-                const response = await fetch(`${API_URL}/api/sales?startDate=${startDate}&endDate=${endDate}&type=${reportType}`);
+                const response = await fetch(`${API_URL}/sales?startDate=${startDate}&endDate=${endDate}&type=${reportType}`);
                 const sales = await response.json();
 
                 // Actualizar resumen
