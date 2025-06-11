@@ -83,8 +83,8 @@
         // Función para cargar los tickets
         async function loadTickets() {
             try {
-                const API_URL = 'https://backend-cisneros.onrender.com/api';
-                const response = await fetch(`${API_URL}/sales`);
+                const API_URL = 'https://backend-cisneros.onrender.com';
+                const response = await fetch(`${API_URL}/api/sales`);
                 const sales = await response.json();
                 
                 const ticketsList = document.getElementById('ticketsList');
