@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes - Autoservicio</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .filters {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        .filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+        .filter-group input, .filter-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #3498db;
+            color: white;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        .report-container {
+            margin-top: 30px;
+        }
+        .report-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .summary-card {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .summary-card h3 {
+            margin: 0;
+            color: #2c3e50;
+        }
+        .summary-card p {
+            margin: 10px 0 0;
+            font-size: 24px;
+            color: #3498db;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f8f9fa;
+            color: #2c3e50;
+        }
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Reportes de Ventas</h1>
+        
+        <div class="filters">
+            <div class="filter-group">
+                <label for="startDate">Fecha Inicio</label>
+                <input type="date" id="startDate">
+            </div>
+            <div class="filter-group">
+                <label for="endDate">Fecha Fin</label>
+                <input type="date" id="endDate">
+            </div>
+            <div class="filter-group">
+                <label for="reportType">Tipo de Reporte</label>
+                <select id="reportType">
+                    <option value="daily">Diario</option>
+                    <option value="weekly">Semanal</option>
+                    <option value="monthly">Mensual</option>
+                </select>
+            </div>
+            <div class="filter-group" style="display: flex; align-items: flex-end;">
+                <button class="btn" onclick="generateReport()">Generar Reporte</button>
+            </div>
+        </div>
+
+        <div class="report-container">
+            <div class="report-summary">
+                <div class="summary-card">
+                    <h3>Total Ventas</h3>
+                    <p id="totalSales">$0</p>
+                </div>
+                <div class="summary-card">
+                    <h3>Total Productos</h3>
+                    <p id="totalProducts">0</p>
+                </div>
+                <div class="summary-card">
+                    <h3>Promedio por Venta</h3>
+                    <p id="averageSale">$0</p>
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Ticket</th>
+                        <th>Productos</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="salesTable">
+                    <!-- Los datos se cargarán dinámicamente aquí -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://backendpuntodeventa-1.onrender.com/api';
+
+        async function generateReport() {
+            try {
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
+                const reportType = document.getElementById('reportType').value;
+
+                const response = await fetch(`${API_URL}/sales?startDate=${startDate}&endDate=${endDate}&type=${reportType}`);
+                const sales = await response.json();
+
+                // Actualizar resumen
+                const totalSales = sales.reduce((sum, sale) => sum + sale.total, 0);
+                const totalProducts = sales.reduce((sum, sale) => sum + sale.productos.reduce((pSum, p) => pSum + p.cantidad, 0), 0);
+                const averageSale = sales.length > 0 ? totalSales / sales.length : 0;
+
+                document.getElementById('totalSales').textContent = `$${totalSales.toFixed(2)}`;
+                document.getElementById('totalProducts').textContent = totalProducts;
+                document.getElementById('averageSale').textContent = `$${averageSale.toFixed(2)}`;
+
+                // Actualizar tabla
+                const salesTable = document.getElementById('salesTable');
+                salesTable.innerHTML = '';
+
+                sales.forEach(sale => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${new Date(sale.fecha).toLocaleString()}</td>
+                        <td>${sale.numeroTicket}</td>
+                        <td>${sale.productos.map(p => `${p.producto.nombre} (${p.cantidad})`).join(', ')}</td>
+                        <td>$${sale.total.toFixed(2)}</td>
+                    `;
+                    salesTable.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error al generar el reporte:', error);
+            }
+        }
+
+        // Establecer fechas por defecto (último mes)
+        const today = new Date();
+        const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
+        document.getElementById('startDate').value = lastMonth.toISOString().split('T')[0];
+        document.getElementById('endDate').value = today.toISOString().split('T')[0];
+
+        // Generar reporte inicial
+        generateReport();
+    </script>
+</body>
+</html> 

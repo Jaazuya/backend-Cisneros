@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tickets - Autoservicio</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .tickets-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .ticket {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 4px;
+            background-color: #fff;
+        }
+        .ticket h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .ticket-info {
+            margin: 10px 0;
+        }
+        .ticket-info p {
+            margin: 5px 0;
+            color: #666;
+        }
+        .ticket-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+            background-color: #3498db;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        .btn-print {
+            background-color: #2ecc71;
+        }
+        .btn-print:hover {
+            background-color: #27ae60;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Tickets de Venta</h1>
+        <div class="tickets-list" id="ticketsList">
+            <!-- Los tickets se cargarán dinámicamente aquí -->
+        </div>
+    </div>
+
+    <script>
+        // Función para cargar los tickets
+        async function loadTickets() {
+            try {
+                const API_URL = 'https://backendpuntodeventa-1.onrender.com/api';
+                const response = await fetch(`${API_URL}/sales`);
+                const sales = await response.json();
+                
+                const ticketsList = document.getElementById('ticketsList');
+                ticketsList.innerHTML = '';
+
+                sales.forEach(sale => {
+                    const ticket = document.createElement('div');
+                    ticket.className = 'ticket';
+                    ticket.innerHTML = `
+                        <h3>Ticket #${sale.numeroTicket}</h3>
+                        <div class="ticket-info">
+                            <p><strong>Fecha:</strong> ${new Date(sale.fecha).toLocaleString()}</p>
+                            <p><strong>Total:</strong> $${sale.total}</p>
+                            <p><strong>Estado:</strong> ${sale.estado}</p>
+                        </div>
+                        <div class="ticket-actions">
+                            <a href="/tickets/${sale.numeroTicket}.html" class="btn" target="_blank">Ver Ticket</a>
+                            <button class="btn btn-print" onclick="printTicket('${sale.numeroTicket}')">Imprimir</button>
+                        </div>
+                    `;
+                    ticketsList.appendChild(ticket);
+                });
+            } catch (error) {
+                console.error('Error al cargar los tickets:', error);
+            }
+        }
+
+        // Función para imprimir ticket
+        function printTicket(ticketNumber) {
+            window.open(`/tickets/${ticketNumber}.html`, '_blank');
+        }
+
+        // Cargar tickets al iniciar la página
+        loadTickets();
+    </script>
+</body>
+</html> 
